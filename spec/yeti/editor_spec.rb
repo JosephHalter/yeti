@@ -168,19 +168,40 @@ describe Yeti::Editor do
       Class.new Yeti::Editor do
         attribute :name
         attribute :description, from: :related
+        attribute :password, from: nil
+        attribute :timestamp, from: ".timestamp_str"
+        attribute :related_id, from: "related.id"
+        attribute :invalid
         def find_by_id(id)
           Struct.new(:id, :name).new(id, "Anthony")
         end
         def related
-          Struct.new(:description).new "Business man"
+          Struct.new(:id, :description).new 2, "Business man"
+        end
+        def timestamp_str
+          "2001-01-01"
         end
       end
     end
     subject{ object_editor.new context, 1 }
-    it "should get each attribute from its record" do
+    it "attribute default value come from edited" do
       subject.id.should == 1
       subject.name.should == "Anthony"
+    end
+    it "attribute value can come from another object" do
       subject.description.should == "Business man"
+    end
+    it "attribute value can come from nowhere" do
+      subject.password.should be_nil
+    end
+    it "attribute value can come from specified method on self" do
+      subject.timestamp.should == "2001-01-01"
+    end
+    it "attribute value can come from specified method on another object" do
+      subject.related_id.should == "2"
+    end
+    it "attribute raises if value cannot be found in source" do
+      lambda{ subject.invalid }.should raise_error NoMethodError
     end
   end
 end

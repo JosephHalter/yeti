@@ -75,14 +75,20 @@ module Yeti
 
     def self.attribute(name, opts={})
       opts[:attribute_name] = name
-      opts[:from] ||= :edited
+      opts[:from] = :edited unless opts.has_key? :from
       attribute_options[name.to_sym] = opts
       define_attribute_methods attributes
+      from =     case opts[:from].to_s
+      when ""    then "nil"
+      when /^\./ then "self#{opts[:from]}"
+      when /\./  then opts[:from]
+      else            "#{opts[:from]}.#{name}"
+      end
       class_eval """
         def #{name}
           unless defined? @#{name}
             opts = self.class.attribute_options[:#{name}]
-            @#{name} = format_input #{opts[:from]}.#{name}, opts
+            @#{name} = format_input #{from}, opts
           end
           @#{name}
         end
