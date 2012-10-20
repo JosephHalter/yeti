@@ -1,8 +1,8 @@
 require "spec_helper"
 
-describe ::Yeti::Editor do
+describe Yeti::Editor do
   let(:context){ mock :context }
-  subject{ ::Yeti::Editor.new context, nil }
+  subject{ Yeti::Editor.new context, nil }
   it "should keep given context" do
     subject.context.should be context
   end
@@ -16,7 +16,7 @@ describe ::Yeti::Editor do
     lambda{ subject.persist! }.should raise_error NotImplementedError
   end
   context "with a given id" do
-    subject{ ::Yeti::Editor.new context, 1 }
+    subject{ Yeti::Editor.new context, 1 }
     it{ should be_persisted }
     it "#edited should use #find_by_id" do
       subject.stub(:find_by_id).with(1).and_return(expected = mock)
@@ -44,7 +44,7 @@ describe ::Yeti::Editor do
   end
   context "editor of one record" do
     let :object_editor do
-      Class.new ::Yeti::Editor do
+      Class.new Yeti::Editor do
         attribute :name
         validates_presence_of :name
         def self.name
@@ -137,6 +137,21 @@ describe ::Yeti::Editor do
         subject.name.should == "Anthony"
       end
       it{ should be_valid }
+      it "input formatting can be customized" do
+        subject.stub(:format_input).with("Anthony", {
+          attribute_name: :name,
+          from: :edited,
+        }).and_return(expected = mock)
+        subject.name.should be expected
+      end
+      it "output formatting can be customized" do
+        subject.stub(:format_output).with("Tony", {
+          attribute_name: :name,
+          from: :edited,
+        }).and_return(expected = mock)
+        subject.name = "Tony"
+        subject.name.should be expected
+      end
       context "when name is changed" do
         before{ subject.name = nil }
         it("name should be updated"){ subject.name.should be_nil }
@@ -146,6 +161,26 @@ describe ::Yeti::Editor do
           subject.name_changed?.should be false
         end
       end
+    end
+  end
+  context "editor of multiple records" do
+    let :object_editor do
+      Class.new Yeti::Editor do
+        attribute :name
+        attribute :description, from: :related
+        def find_by_id(id)
+          Struct.new(:id, :name).new(id, "Anthony")
+        end
+        def related
+          Struct.new(:description).new "Business man"
+        end
+      end
+    end
+    subject{ object_editor.new context, 1 }
+    it "should get each attribute from its record" do
+      subject.id.should == 1
+      subject.name.should == "Anthony"
+      subject.description.should == "Business man"
     end
   end
 end

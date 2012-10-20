@@ -74,16 +74,21 @@ module Yeti
     attr_reader :given_id
 
     def self.attribute(name, opts={})
-      self.attributes << name
+      opts[:attribute_name] = name
+      opts[:from] ||= :edited
+      attribute_options[name.to_sym] = opts
       define_attribute_methods attributes
-      from = opts[:from] || :edited
       class_eval """
         def #{name}
-          @#{name} = #{from}.#{name} unless defined? @#{name}
+          unless defined? @#{name}
+            opts = self.class.attribute_options[:#{name}]
+            @#{name} = format_input #{opts[:from]}.#{name}, opts
+          end
           @#{name}
         end
         def #{name}=(value)
-          value = (value.to_s.clean.strip if value)
+          opts = self.class.attribute_options[:#{name}]
+          value = format_output value, opts
           return if value==#{name}
           #{name}_will_change!
           @#{name} = value
@@ -94,7 +99,11 @@ module Yeti
     end
 
     def self.attributes
-      @attributes ||= []
+      attribute_options.keys
+    end
+
+    def self.attribute_options
+      @attribute_options ||= {}
     end
 
     def self.dont_translate_error_messages
@@ -103,6 +112,14 @@ module Yeti
 
     def self.untranslated?
       !!@untranslated
+    end
+
+    def format_input(value, attribute_opts)
+      value.to_s if value
+    end
+
+    def format_output(value, attribute_opts)
+      value.to_s.clean.strip if value
     end
 
   end
