@@ -1,18 +1,29 @@
 module Yeti
   class Search
 
-    attr_reader :search, :page
+    attr_reader :context
     delegate :to_ary, :empty?, :each, :group_by, :size, to: :results
+    delegate :page_count, to: :paginated_results
 
     def initialize(context, hash)
       @context = context
-      @search = hash[:search] || {}.with_indifferent_access
-      @page = hash[:page] || 1
-      @per_page = hash[:per_page] || 20
+      @hash = hash
     end
 
-    def page_count
-      paginated_results.page_count
+    def search
+      @search ||= (hash[:search] || {}).with_indifferent_access
+    end
+
+    def page
+      @page ||= [1, (hash[:page] || 1).to_i].max
+    end
+
+    def per_page
+      @per_page ||= begin
+        per_page = [1, (hash[:per_page] || 20).to_i].max
+        max = self.class.max_per_page
+        max ? [per_page, max].min : per_page
+      end
     end
 
     def count
@@ -38,17 +49,22 @@ module Yeti
       end
     end
 
+    def paginated_results
+      raise NotImplementedError
+    end
+
   private
 
-    attr_reader :context, :per_page
+    attr_reader :hash
+
+    # ~~~ private class methods ~~~
+    def self.max_per_page(value=nil)
+      value ? @max_per_page = value : @max_per_page
+    end
 
     # ~~~ private instance methods ~~~
     def delegate_to_search_pattern
       /(?:_equals|_contains|_gte|_lte)\z/
-    end
-
-    def paginated_results
-      raise NotImplementedError
     end
 
   end
