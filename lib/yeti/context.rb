@@ -6,13 +6,15 @@ module Yeti
 
     delegate :id, to: :account, prefix: :account
 
-    def initialize(hash)
-      @given_account_id = hash.fetch(:account_id)
+    def initialize(hash={})
+      @hash = hash
     end
 
     def account
-      @account ||= find_account_by_id given_account_id if given_account_id
-      @account ||= no_account
+      @account ||= begin
+        given_account_id = hash[:account_id]
+        (find_account_by_id given_account_id if given_account_id) || no_account
+      end
     end
 
     def find_account_by_id(id)
@@ -21,7 +23,7 @@ module Yeti
 
   private
 
-    attr_reader :given_account_id
+    attr_reader :hash
 
     def no_account
       NoAccount.new

@@ -1,10 +1,14 @@
 require "spec_helper"
 
 describe Yeti::Context do
-  context "initialization" do
-    it "requires a hash with account_id" do
-      lambda{ Yeti::Context.new }.should raise_error ArgumentError, "wrong number of arguments (0 for 1)"
-      lambda{ Yeti::Context.new key: nil }.should raise_error KeyError, "key not found: :account_id"
+  context "without hash" do
+    it "#account is an instance of Yeti::Context::NoAccount" do
+      Yeti::Context.new.account.should be_kind_of Yeti::Context::NoAccount
+    end
+  end
+  context "when account_id is not in hash" do
+    it "#account is an instance of Yeti::Context::NoAccount" do
+      Yeti::Context.new({}).account.should be_kind_of Yeti::Context::NoAccount
     end
   end
   context "when account_id is nil" do
