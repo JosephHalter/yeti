@@ -22,7 +22,7 @@ Or install it yourself as:
 
 ### Yeti::Context
 
-The context object allow to communicate application state coming from the
+The context object allows to communicate application state coming from the
 controllers. First, let's create a Context class tuned to your application
 logic.
 
@@ -145,6 +145,26 @@ object regroups and unify this communication while being easy to test in
 isolation.
 
 ### Yeti::Search
+
+The search object aims to simplify creating pages with numerous filters.
+
+Let's say you have the following Sequel model:
+
+```ruby
+class User < Sequel::Model
+end
+```
+
+then you can create UserSearch like this:
+
+```ruby
+class UserSearch < Yeti::Search
+private
+  def paginated_results
+    User.search(search).paginate page, per_page
+  end
+end
+```
 
 ### Yeti::Editor
 
