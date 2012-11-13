@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Yeti::Editor do
   let(:context){ mock :context }
-  subject{ Yeti::Editor.new context, nil }
+  subject{ Yeti::Editor.new context }
   it "keeps given context" do
     subject.context.should be context
   end
@@ -20,6 +20,14 @@ describe Yeti::Editor do
     it{ should be_persisted }
     it "uses #find_by_id to find the main object being edited" do
       subject.stub(:find_by_id).with(1).and_return(expected = mock)
+      subject.edited.should be expected
+    end
+  end
+  context "with id nil" do
+    subject{ Yeti::Editor.new context, nil }
+    it{ should_not be_persisted }
+    it "uses #new_object to initialize main object being edited" do
+      subject.stub(:new_object).and_return(expected = mock)
       subject.edited.should be expected
     end
   end

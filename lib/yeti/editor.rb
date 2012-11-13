@@ -6,7 +6,7 @@ module Yeti
     attr_reader :context
     delegate :id, to: :edited
 
-    def initialize(context, given_id)
+    def initialize(context, given_id=nil)
       @context = context
       @given_id = given_id
     end
