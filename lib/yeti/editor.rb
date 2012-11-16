@@ -4,7 +4,7 @@ module Yeti
     include ActiveModel::Dirty
 
     attr_reader :context
-    delegate :id, to: :edited
+    delegate :id, :to_param, to: :edited
 
     def initialize(context, given_id=nil)
       @context = context
