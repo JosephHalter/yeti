@@ -50,7 +50,7 @@ module Yeti
     end
 
     def paginated_results
-      raise NotImplementedError
+      raise NotImplementedError, "#paginated_results"
     end
 
   private

@@ -27,11 +27,11 @@ module Yeti
     end
 
     def find_by_id(id)
-      raise NotImplementedError
+      raise NotImplementedError, "#find_by_id"
     end
 
     def new_object
-      raise NotImplementedError
+      raise NotImplementedError, "#new_object"
     end
 
     def persisted?
@@ -66,7 +66,7 @@ module Yeti
     end
 
     def persist!
-      raise NotImplementedError
+      raise NotImplementedError, "#persist!"
     end
 
   private
