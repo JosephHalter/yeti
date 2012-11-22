@@ -57,8 +57,10 @@ module Yeti
       end
     end
 
-    def save
-      return false unless valid?
+    def save(opts={})
+      if opts.fetch :validate, true
+        return false unless valid?
+      end
       persist!
       @previously_changed = changes
       changed_attributes.clear
@@ -67,6 +69,10 @@ module Yeti
 
     def persist!
       raise NotImplementedError, "#persist!"
+    end
+
+    def without_error?
+      errors.empty?
     end
 
   private

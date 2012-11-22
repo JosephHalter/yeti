@@ -43,6 +43,10 @@ describe Yeti::Editor do
     it "#save returns false" do
       subject.save.should be false
     end
+    it "#save(validate: false) calls persist! then returns true" do
+      subject.should_receive :persist!
+      subject.save(validate: false).should be true
+    end
   end
   context "when valid" do
     it "#save calls persist! then returns true" do
@@ -91,12 +95,17 @@ describe Yeti::Editor do
       end
       context "before validation" do
         its(:errors){ should be_empty }
+        it{ should be_without_error }
       end
       context "after validation" do
         it "has an error on name" do
           subject.valid?
           subject.errors[:name].should have(1).item
           subject.errors[:name].should == ["can't be blank"]
+        end
+        it "is not without_error? anymore" do
+          subject.valid?
+          subject.should_not be_without_error
         end
         it "can return untranslated error messages" do
           editor_class.class_eval do
