@@ -20,7 +20,7 @@ module Yeti
 
     def edited
       @edited ||= if given_id
-        find_by_id given_id.to_i
+        find_by_id given_id
       else
         new_object
       end
