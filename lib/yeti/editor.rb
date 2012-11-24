@@ -75,6 +75,12 @@ module Yeti
       errors.empty?
     end
 
+    def mandatory?(column)
+      self.class.validators_on(column).any? do |validator|
+        validator.kind_of? ::ActiveModel::Validations::PresenceValidator
+      end
+    end
+
   private
 
     attr_reader :given_id

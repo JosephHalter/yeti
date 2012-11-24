@@ -221,4 +221,23 @@ describe Yeti::Editor do
       lambda{ subject.invalid }.should raise_error NoMethodError
     end
   end
+  describe "#mandatory?" do
+    let :editor_class do
+      Class.new Yeti::Editor do
+        validates_presence_of :name
+        attribute :name
+        attribute :password
+      end
+    end
+    subject{ editor_class.new context }
+    it "is true for an attribute with validates_presence_of" do
+      subject.mandatory?(:name).should be true
+    end
+    it "is false for an attribute without validates_presence_of" do
+      subject.mandatory?(:password).should be false
+    end
+    it "is false for an invalid attribute" do
+      subject.mandatory?(:invalid).should be false
+    end
+  end
 end
