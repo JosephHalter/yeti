@@ -18,7 +18,7 @@ module Yeti
     end
 
     def find_account_by_id(id)
-      raise NotImplementedError, "#find_account_by_id"
+      raise NotImplementedError, "#{self.class}#find_account_by_id"
     end
 
   private

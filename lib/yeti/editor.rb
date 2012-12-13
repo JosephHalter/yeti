@@ -27,11 +27,11 @@ module Yeti
     end
 
     def find_by_id(id)
-      raise NotImplementedError, "#find_by_id"
+      raise NotImplementedError, "#{self.class}#find_by_id"
     end
 
     def new_object
-      raise NotImplementedError, "#new_object"
+      raise NotImplementedError, "#{self.class}#new_object"
     end
 
     def persisted?
@@ -68,7 +68,7 @@ module Yeti
     end
 
     def persist!
-      raise NotImplementedError, "#persist!"
+      raise NotImplementedError, "#{self.class}#persist!"
     end
 
     def without_error?
