@@ -16,26 +16,38 @@ describe Yeti::Editor do
     lambda{ subject.persist! }.should raise_error NotImplementedError
   end
   context "with a given id" do
+    let(:edited){ mock :edited }
     subject{ Yeti::Editor.new context, 1 }
-    it{ should be_persisted }
+    before{ subject.stub(:find_by_id).with(1).and_return edited }
     it "uses #find_by_id to find the main object being edited" do
-      subject.stub(:find_by_id).with(1).and_return(expected = mock)
-      subject.edited.should be expected
+      subject.edited.should be edited
+    end
+    it "delegates persisted? to edited" do
+      edited.stub(:persisted?).and_return(expected = mock)
+      subject.persisted?.should be expected
     end
   end
   context "with id nil" do
+    let(:edited){ mock :edited }
     subject{ Yeti::Editor.new context, nil }
-    it{ should_not be_persisted }
+    before{ subject.stub(:new_object).and_return edited }
     it "uses #new_object to initialize main object being edited" do
-      subject.stub(:new_object).and_return(expected = mock)
-      subject.edited.should be expected
+      subject.edited.should be edited
+    end
+    it "delegates persisted? to edited" do
+      edited.stub(:persisted?).and_return(expected = mock)
+      subject.persisted?.should be expected
     end
   end
   context "without id" do
-    it{ should_not be_persisted }
+    let(:edited){ mock :edited }
+    before{ subject.stub(:new_object).and_return edited }
     it "uses #new_object to initialize main object being edited" do
-      subject.stub(:new_object).and_return(expected = mock)
-      subject.edited.should be expected
+      subject.edited.should be edited
+    end
+    it "delegates persisted? to edited" do
+      edited.stub(:persisted?).and_return(expected = mock)
+      subject.persisted?.should be expected
     end
   end
   context "when not valid" do
