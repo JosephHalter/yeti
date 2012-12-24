@@ -4,7 +4,7 @@ module Yeti
     include ActiveModel::Dirty
 
     attr_reader :context
-    delegate :id, :to_param, :persisted?, to: :edited
+    delegate :id, :to_param, to: :edited, allow_nil: true
 
     def self.from_id(context, id)
       new context, (find_by_id id if id)
@@ -25,6 +25,10 @@ module Yeti
 
     def edited
       @edited ||= self.class.new_object
+    end
+
+    def persisted?
+      edited ? edited.persisted? : false
     end
 
     def errors

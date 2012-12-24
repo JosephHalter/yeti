@@ -38,6 +38,13 @@ describe ::Yeti::Editor do
       it "delegates persisted? edited object" do
         should delegates(:persisted?).to :new_object
       end
+      it ".new_object can be nil" do
+        described_class.stub :new_object
+        subject.edited.should be_nil
+        subject.id.should be_nil
+        subject.to_param.should be_nil
+        subject.should_not be_persisted
+      end
     end
     context "initialize with context and object to edit" do
       subject{ described_class.new context, existing_object }
