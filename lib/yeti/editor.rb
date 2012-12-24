@@ -6,9 +6,25 @@ module Yeti
     attr_reader :context
     delegate :id, :to_param, :persisted?, to: :edited
 
-    def initialize(context, given_id=nil)
+    def self.from_id(context, id)
+      new context, (find_by_id id if id)
+    end
+
+    def self.find_by_id(id)
+      raise NotImplementedError, "#{inspect}.find_by_id"
+    end
+
+    def self.new_object
+      raise NotImplementedError, "#{inspect}.new_object"
+    end
+
+    def initialize(context, edited=nil)
       @context = context
-      @given_id = given_id
+      @edited = edited
+    end
+
+    def edited
+      @edited ||= self.class.new_object
     end
 
     def errors
@@ -16,22 +32,6 @@ module Yeti
         self,
         untranslated: self.class.untranslated?
       )
-    end
-
-    def edited
-      @edited ||= if given_id
-        find_by_id given_id
-      else
-        new_object
-      end
-    end
-
-    def find_by_id(id)
-      raise NotImplementedError, "#{self.class}#find_by_id"
-    end
-
-    def new_object
-      raise NotImplementedError, "#{self.class}#new_object"
     end
 
     def update_attributes(attrs)
@@ -78,8 +78,6 @@ module Yeti
     end
 
   private
-
-    attr_reader :given_id
 
     def self.attribute(name, opts={})
       opts[:attribute_name] = name

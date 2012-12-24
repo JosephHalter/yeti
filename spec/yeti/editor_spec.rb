@@ -1,61 +1,95 @@
 require "spec_helper"
 
-describe Yeti::Editor do
+describe ::Yeti::Editor do
   let(:context){ mock :context }
-  subject{ Yeti::Editor.new context }
-  it "keeps given context" do
-    subject.context.should be context
+  subject{ described_class.new context }
+  it ".new_object is virtual" do
+    lambda do
+      described_class.new_object
+    end.should raise_error NotImplementedError, "Yeti::Editor.new_object"
   end
-  it "#find_by_id is virtual" do
-    lambda{ subject.find_by_id 1 }.should raise_error NotImplementedError
+  it ".find_by_id is virtual" do
+    lambda do
+      described_class.find_by_id 1
+    end.should raise_error NotImplementedError, "Yeti::Editor.find_by_id"
   end
-  it "#new_object is virtual" do
-    lambda{ subject.new_object }.should raise_error NotImplementedError
-  end
-  it "#persist! is virtual" do
-    lambda{ subject.persist! }.should raise_error NotImplementedError
-  end
-  context "with a given id" do
-    let(:edited){ mock :edited }
-    subject{ Yeti::Editor.new context, 1 }
-    before{ subject.stub(:find_by_id).with(1).and_return edited }
-    it "uses #find_by_id to find the main object being edited" do
-      subject.edited.should be edited
+  describe "initialization" do
+    let(:new_object){ mock :new_object }
+    let(:existing_object){ mock :existing_object }
+    context "with context only" do
+      before{ described_class.stub(:new_object).and_return new_object }
+      it "keeps given context" do
+        subject.context.should be context
+      end
+      it "#persist! is virtual" do
+        lambda do
+          subject.persist!
+        end.should raise_error NotImplementedError, "Yeti::Editor#persist!"
+      end
+      it "uses .new_object to initialize edited object" do
+        subject.edited.should == new_object
+      end
+      it "delegates id to edited object" do
+        should delegates(:id).to :new_object
+      end
+      it "delegates to_param to edited object" do
+        should delegates(:to_param).to :new_object
+      end
+      it "delegates persisted? edited object" do
+        should delegates(:persisted?).to :new_object
+      end
     end
-    it "delegates persisted? to edited" do
-      edited.stub(:persisted?).and_return(expected = mock)
-      subject.persisted?.should be expected
+    context "initialize with context and object to edit" do
+      subject{ described_class.new context, existing_object }
+      it "keeps given context" do
+        subject.context.should be context
+      end
+      it "#persist! is virtual" do
+        lambda do
+          subject.persist!
+        end.should raise_error NotImplementedError, "Yeti::Editor#persist!"
+      end
+      it "delegates id to edited object" do
+        should delegates(:id).to :existing_object
+      end
+      it "delegates to_param to edited object" do
+        should delegates(:to_param).to :existing_object
+      end
+      it "delegates persisted? edited object" do
+        should delegates(:persisted?).to :existing_object
+      end
     end
   end
-  context "with id nil" do
-    let(:edited){ mock :edited }
-    subject{ Yeti::Editor.new context, nil }
-    before{ subject.stub(:new_object).and_return edited }
-    it "uses #new_object to initialize main object being edited" do
-      subject.edited.should be edited
+  describe ".from_id(context, given_id)" do
+    let(:new_object){ mock :new_object }
+    let(:existing_object){ mock :existing_object, id: 1 }
+    subject{ described_class.from_id context, given_id }
+    context "when given_id is nil" do
+      let(:given_id){ nil }
+      it "uses .new_object to generate object to edit" do
+        described_class.should_receive(:new_object).and_return new_object
+        subject.edited.should be new_object
+      end
     end
-    it "delegates persisted? to edited" do
-      edited.stub(:persisted?).and_return(expected = mock)
-      subject.persisted?.should be expected
-    end
-  end
-  context "without id" do
-    let(:edited){ mock :edited }
-    before{ subject.stub(:new_object).and_return edited }
-    it "uses #new_object to initialize main object being edited" do
-      subject.edited.should be edited
-    end
-    it "delegates persisted? to edited" do
-      edited.stub(:persisted?).and_return(expected = mock)
-      subject.persisted?.should be expected
+    context "when given_id is not nil" do
+      let(:given_id){ "1" }
+      it "uses .find_by_id to find object to edit" do
+        described_class.should_receive(:find_by_id).with("1").and_return do
+          existing_object
+        end
+        subject.edited.should be existing_object
+        subject.id.should be 1
+      end
     end
   end
   context "when not valid" do
-    before{ subject.stub(:valid?).and_return false }
     it "#save returns false" do
+      subject.should_receive(:valid?).and_return false
+      subject.should_not_receive :persist!
       subject.save.should be false
     end
     it "#save(validate: false) calls persist! then returns true" do
+      subject.should_not_receive :valid?
       subject.should_receive :persist!
       subject.save(validate: false).should be true
     end
@@ -67,19 +101,19 @@ describe Yeti::Editor do
     end
   end
   context "editor of one record" do
-    let :editor_class do
-      Class.new Yeti::Editor do
+    let :described_class do
+      Class.new ::Yeti::Editor do
         attribute :name
         validates_presence_of :name
         def self.name
           "ObjectEditor"
         end
+        def self.new_object
+          Struct.new(:id, :name).new nil, nil
+        end
       end
     end
     context "new record" do
-      subject{ editor_class.new context, nil }
-      let(:new_record){ mock :new_record, name: nil, id: nil }
-      before{ subject.stub(:new_object).and_return new_record }
       its(:id){ should be_nil }
       its(:name){ should be_nil }
       it "#name= converts input to string" do
@@ -120,7 +154,7 @@ describe Yeti::Editor do
           subject.should_not be_without_error
         end
         it "can return untranslated error messages" do
-          editor_class.class_eval do
+          described_class.class_eval do
             dont_translate_error_messages
           end
           subject.valid?
@@ -158,9 +192,8 @@ describe Yeti::Editor do
       end
     end
     context "existing record" do
-      subject{ editor_class.new context, 1 }
-      let(:existing_record){ mock :existing_record, name: "Anthony", id: 1 }
-      before{ subject.stub(:find_by_id).with(1).and_return existing_record }
+      let(:existing_object){ mock :existing_object, id: 1, name: "Anthony" }
+      subject{ described_class.new context, existing_object }
       it("gets id from record"){ subject.id.should be 1 }
       it "gets name from record" do
         subject.name.should == "Anthony"
@@ -193,26 +226,23 @@ describe Yeti::Editor do
     end
   end
   context "editor of multiple records" do
-    let :editor_class do
-      Class.new Yeti::Editor do
+    let(:existing_object){ Struct.new(:id, :name).new 1, "Anthony" }
+    subject do
+      Class.new described_class do
         attribute :name
         attribute :description, from: :related
         attribute :password, from: nil
         attribute :timestamp, from: ".timestamp_str"
         attribute :related_id, from: "related.id"
         attribute :invalid
-        def find_by_id(id)
-          Struct.new(:id, :name).new(id, "Anthony")
-        end
         def related
           Struct.new(:id, :description).new 2, "Business man"
         end
         def timestamp_str
           "2001-01-01"
         end
-      end
+      end.new context, existing_object
     end
-    subject{ editor_class.new context, 1 }
     it "attribute default value comes from edited" do
       subject.id.should == 1
       subject.name.should == "Anthony"
@@ -234,14 +264,13 @@ describe Yeti::Editor do
     end
   end
   describe "#mandatory?" do
-    let :editor_class do
-      Class.new Yeti::Editor do
+    subject do
+      Class.new described_class do
         validates_presence_of :name
         attribute :name
         attribute :password
-      end
+      end.new context
     end
-    subject{ editor_class.new context }
     it "is true for an attribute with validates_presence_of" do
       subject.mandatory?(:name).should be true
     end
