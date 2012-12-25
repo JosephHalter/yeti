@@ -5,19 +5,19 @@ describe ::Yeti::Editor do
   subject{ described_class.new context }
   it ".new_object is virtual" do
     lambda do
-      described_class.new_object
+      described_class.new_object context
     end.should raise_error NotImplementedError, "Yeti::Editor.new_object"
   end
   it ".find_by_id is virtual" do
     lambda do
-      described_class.find_by_id 1
+      described_class.find_by_id context, 1
     end.should raise_error NotImplementedError, "Yeti::Editor.find_by_id"
   end
   describe "initialization" do
     let(:new_object){ mock :new_object }
     let(:existing_object){ mock :existing_object }
     context "with context only" do
-      before{ described_class.stub(:new_object).and_return new_object }
+      before{ described_class.stub(:new_object).with(context).and_return new_object }
       it "keeps given context" do
         subject.context.should be context
       end
@@ -74,14 +74,14 @@ describe ::Yeti::Editor do
     context "when given_id is nil" do
       let(:given_id){ nil }
       it "uses .new_object to generate object to edit" do
-        described_class.should_receive(:new_object).and_return new_object
+        described_class.should_receive(:new_object).with(context).and_return new_object
         subject.edited.should be new_object
       end
     end
     context "when given_id is not nil" do
       let(:given_id){ "1" }
       it "uses .find_by_id to find object to edit" do
-        described_class.should_receive(:find_by_id).with("1").and_return do
+        described_class.should_receive(:find_by_id).with(context, "1").and_return do
           existing_object
         end
         subject.edited.should be existing_object
@@ -115,7 +115,7 @@ describe ::Yeti::Editor do
         def self.name
           "ObjectEditor"
         end
-        def self.new_object
+        def self.new_object(context)
           Struct.new(:id, :name).new nil, nil
         end
       end

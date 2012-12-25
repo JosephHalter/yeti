@@ -7,14 +7,14 @@ module Yeti
     delegate :id, :to_param, to: :edited, allow_nil: true
 
     def self.from_id(context, id)
-      new context, (find_by_id id if id)
+      new context, (find_by_id context, id if id)
     end
 
-    def self.find_by_id(id)
+    def self.find_by_id(context, id)
       raise NotImplementedError, "#{inspect}.find_by_id"
     end
 
-    def self.new_object
+    def self.new_object(context)
       raise NotImplementedError, "#{inspect}.new_object"
     end
 
@@ -24,7 +24,7 @@ module Yeti
     end
 
     def edited
-      @edited ||= self.class.new_object
+      @edited ||= self.class.new_object context
     end
 
     def persisted?
