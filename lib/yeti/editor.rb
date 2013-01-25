@@ -10,14 +10,6 @@ module Yeti
       new context, (find_by_id context, id if id)
     end
 
-    def self.find_by_id(context, id)
-      raise NotImplementedError, "#{inspect}.find_by_id"
-    end
-
-    def self.new_object(context)
-      raise NotImplementedError, "#{inspect}.new_object"
-    end
-
     def initialize(context, edited=nil)
       @context = context
       @edited = edited
@@ -79,6 +71,16 @@ module Yeti
       self.class.validators_on(column).any? do |validator|
         validator.kind_of? ::ActiveModel::Validations::PresenceValidator
       end
+    end
+
+  protected
+
+    def self.find_by_id(context, id)
+      raise NotImplementedError, "#{inspect}.find_by_id"
+    end
+
+    def self.new_object(context)
+      raise NotImplementedError, "#{inspect}.new_object"
     end
 
   private
