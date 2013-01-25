@@ -9,11 +9,11 @@ module Yeti
       @decorated = decorated
     end
 
-  protected
-
     def self.from_id(context, id)
       new context, (find_by_id id if id)
     end
+
+  protected
 
     def self.find_by_id(id)
       raise NotImplementedError, "#{inspect}.find_by_id"
