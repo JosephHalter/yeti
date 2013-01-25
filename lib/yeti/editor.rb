@@ -75,6 +75,7 @@ module Yeti
 
   protected
 
+    # ~~~ methods to be implemented in subclasses ~~~
     def self.find_by_id(context, id)
       raise NotImplementedError, "#{inspect}.find_by_id"
     end
