@@ -10,13 +10,13 @@ module Yeti
     end
 
     def self.from_id(context, id)
-      new context, (find_by_id id if id)
+      new context, (find_by_id context, id if id)
     end
 
   protected
 
     # ~~~ methods to be implemented in subclasses ~~~
-    def self.find_by_id(id)
+    def self.find_by_id(context, id)
       raise NotImplementedError, "#{inspect}.find_by_id"
     end
 

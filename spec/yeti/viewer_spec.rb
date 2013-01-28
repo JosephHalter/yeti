@@ -5,7 +5,7 @@ describe ::Yeti::Viewer do
   subject{ described_class.new context }
   it ".find_by_id is virtual" do
     lambda do
-      described_class.find_by_id 1
+      described_class.find_by_id context, 1
     end.should raise_error NotImplementedError, "Yeti::Viewer.find_by_id"
   end
   describe "initialization" do
@@ -31,7 +31,7 @@ describe ::Yeti::Viewer do
     let(:existing_object){ mock :existing_object }
     subject{ described_class.from_id context, "1" }
     it "uses .find_by_id to find object to edit" do
-      described_class.should_receive(:find_by_id).with("1").and_return do
+      described_class.should_receive(:find_by_id).with(context, "1").and_return do
         existing_object
       end
       subject.decorated.should be existing_object
