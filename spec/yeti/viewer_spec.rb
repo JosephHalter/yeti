@@ -2,7 +2,6 @@ require "spec_helper"
 
 describe ::Yeti::Viewer do
   let(:context){ mock :context }
-  subject{ described_class.new context }
   it ".find_by_id is virtual" do
     lambda do
       described_class.find_by_id context, 1
@@ -37,7 +36,7 @@ describe ::Yeti::Viewer do
       subject.decorated.should be existing_object
     end
   end
-  describe "#==" do
+  describe "equality" do
     let(:existing){ mock :object, id: 1 }
     let(:another){ mock :object, id: 2 }
     subject{ described_class.from_id context, 1 }
@@ -46,13 +45,19 @@ describe ::Yeti::Viewer do
       described_class.stub(:find_by_id).with(context, 2).and_return another
     end
     it "two viewers of the same class with the same id are equal" do
-      subject.should == described_class.from_id(context, 1)
+      other = described_class.from_id context, 1
+      subject.should == other
+      subject.should eql other
     end
     it "two viewers of the same class with different ids are not equal" do
-      subject.should_not == described_class.from_id(context, 2)
+      other = described_class.from_id context, 2
+      subject.should_not == other
+      subject.should_not eql other
     end
     it "two viewers of different classes with the same id are not equal" do
-      subject.should_not == Class.new(described_class).from_id(context, 1)
+      other = Class.new(described_class).from_id context, 1
+      subject.should_not == other
+      subject.should_not eql other
     end
   end
 end

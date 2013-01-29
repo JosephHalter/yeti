@@ -81,6 +81,7 @@ module Yeti
         other.id==id
       )
     end
+    alias_method :eql?, :==
 
   protected
 

@@ -288,7 +288,7 @@ describe ::Yeti::Editor do
       subject.mandatory?(:invalid).should be false
     end
   end
-  describe "#==" do
+  describe "equality" do
     let(:existing){ mock :object, id: 1, persisted?: true }
     let(:another){ mock :object, id: 2, persisted?: true }
     subject{ described_class.from_id context, 1 }
@@ -301,16 +301,24 @@ describe ::Yeti::Editor do
     end
     it "two new editors are not equal" do
       subject = described_class.new context
-      subject.should_not == described_class.new(context)
+      other = described_class.new context
+      subject.should_not == other
+      subject.should_not eql other
     end
     it "two editors of the same class with the same id are equal" do
-      subject.should == described_class.from_id(context, 1)
+      other = described_class.from_id context, 1
+      subject.should == other
+      subject.should eql other
     end
     it "two editors of the same class with different ids are not equal" do
-      subject.should_not == described_class.from_id(context, 2)
+      other = described_class.from_id context, 2
+      subject.should_not == other
+      subject.should_not eql other
     end
     it "two editors of different classes with the same id are not equal" do
-      subject.should_not == Class.new(described_class).from_id(context, 1)
+      other = Class.new(described_class).from_id context, 1
+      subject.should_not == other
+      subject.should_not eql other
     end
   end
 end

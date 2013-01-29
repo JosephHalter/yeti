@@ -16,6 +16,7 @@ module Yeti
     def ==(other)
       other.equal?(self) || (other.instance_of?(self.class) && other.id==id)
     end
+    alias_method :eql?, :==
 
   protected
 
