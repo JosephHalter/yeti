@@ -296,7 +296,7 @@ describe ::Yeti::Editor do
       described_class.stub(:find_by_id).with(context, 1).and_return existing
       described_class.stub(:find_by_id).with(context, 2).and_return another
       described_class.stub(:new_object).with(context).and_return do
-        mock persisted?: false
+        mock persisted?: false, id: nil
       end
     end
     it "two new editors are not equal" do
@@ -304,21 +304,25 @@ describe ::Yeti::Editor do
       other = described_class.new context
       subject.should_not == other
       subject.should_not eql other
+      subject.hash.should == other.hash
     end
     it "two editors of the same class with the same id are equal" do
       other = described_class.from_id context, 1
       subject.should == other
       subject.should eql other
+      subject.hash.should == other.hash
     end
     it "two editors of the same class with different ids are not equal" do
       other = described_class.from_id context, 2
       subject.should_not == other
       subject.should_not eql other
+      subject.hash.should_not == other.hash
     end
     it "two editors of different classes with the same id are not equal" do
       other = Class.new(described_class).from_id context, 1
       subject.should_not == other
       subject.should_not eql other
+      subject.hash.should == other.hash
     end
   end
 end

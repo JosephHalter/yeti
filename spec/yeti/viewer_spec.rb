@@ -48,16 +48,19 @@ describe ::Yeti::Viewer do
       other = described_class.from_id context, 1
       subject.should == other
       subject.should eql other
+      subject.hash.should == other.hash
     end
     it "two viewers of the same class with different ids are not equal" do
       other = described_class.from_id context, 2
       subject.should_not == other
       subject.should_not eql other
+      subject.hash.should_not == other.hash
     end
     it "two viewers of different classes with the same id are not equal" do
       other = Class.new(described_class).from_id context, 1
       subject.should_not == other
       subject.should_not eql other
+      subject.hash.should == other.hash
     end
   end
 end

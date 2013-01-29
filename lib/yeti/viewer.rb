@@ -18,6 +18,10 @@ module Yeti
     end
     alias_method :eql?, :==
 
+    def hash
+      id.hash
+    end
+
   protected
 
     # ~~~ methods to be implemented in subclasses ~~~
