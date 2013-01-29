@@ -73,6 +73,15 @@ module Yeti
       end
     end
 
+    def ==(other)
+      other.equal?(self) || (
+        persisted? &&
+        other.instance_of?(self.class) &&
+        other.persisted? &&
+        other.id==id
+      )
+    end
+
   protected
 
     # ~~~ methods to be implemented in subclasses ~~~

@@ -13,6 +13,10 @@ module Yeti
       new context, (find_by_id context, id if id)
     end
 
+    def ==(other)
+      other.equal?(self) || (other.instance_of?(self.class) && other.id==id)
+    end
+
   protected
 
     # ~~~ methods to be implemented in subclasses ~~~
