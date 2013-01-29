@@ -101,13 +101,13 @@ module Yeti
         def #{name}
           unless defined? @#{name}
             opts = self.class.attribute_options[:#{name}]
-            @#{name} = format_input #{from}, opts
+            @#{name} = format_output #{from}, opts
           end
           @#{name}
         end
         def #{name}=(value)
           opts = self.class.attribute_options[:#{name}]
-          value = format_output value, opts
+          value = format_input value, opts
           return if value==#{name}
           #{name}_will_change!
           @#{name} = value
@@ -134,11 +134,12 @@ module Yeti
     end
 
     def format_input(value, attribute_opts)
-      value.to_s if value
+      value = value.clean.strip if value.respond_to? :clean
+      value
     end
 
     def format_output(value, attribute_opts)
-      value.to_s.clean.strip if value
+      value
     end
 
   end

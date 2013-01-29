@@ -123,11 +123,11 @@ describe ::Yeti::Editor do
     context "new record" do
       its(:id){ should be_nil }
       its(:name){ should be_nil }
-      it "#name= converts input to string" do
+      it "#name= don't touch value if it's not a string" do
         subject.name = ["test"]
-        subject.name.should == "[\"test\"]"
+        subject.name.should == ["test"]
       end
-      it "#name= cleans the value of any harmful content" do
+      it "#name= cleans the value of harmful content if it's a string" do
         subject.name = "\tInfected\210\004"
         subject.name.should == "Infected"
       end
@@ -206,15 +206,15 @@ describe ::Yeti::Editor do
         subject.name.should == "Anthony"
       end
       it{ should be_valid }
-      it "input formatting can be customized" do
-        subject.stub(:format_input).with("Anthony", {
+      it "output formatting can be customized" do
+        subject.stub(:format_output).with("Anthony", {
           attribute_name: :name,
           from: :edited,
         }).and_return(expected = mock)
         subject.name.should be expected
       end
-      it "output formatting can be customized" do
-        subject.stub(:format_output).with("Tony", {
+      it "input formatting can be customized" do
+        subject.stub(:format_input).with("Tony", {
           attribute_name: :name,
           from: :edited,
         }).and_return(expected = mock)
@@ -264,7 +264,7 @@ describe ::Yeti::Editor do
       subject.timestamp.should == "2001-01-01"
     end
     it "attribute value can come from specified method on another object" do
-      subject.related_id.should == "2"
+      subject.related_id.should == 2
     end
     it "attribute raises if value cannot be found in source" do
       lambda{ subject.invalid }.should raise_error NoMethodError
