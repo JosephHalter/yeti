@@ -242,12 +242,17 @@ describe ::Yeti::Editor do
         attribute :timestamp, from: ".timestamp_str"
         attribute :related_id, from: "related.id"
         attribute :invalid
+
         def related
           Struct.new(:id, :description).new 2, "Business man"
         end
+
+      private
+
         def timestamp_str
           "2001-01-01"
         end
+
       end.new context, existing_object
     end
     it "attribute default value comes from edited" do
