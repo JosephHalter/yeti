@@ -330,4 +330,46 @@ describe ::Yeti::Editor do
       subject.hash.should == other.hash
     end
   end
+  describe "#attributes_for_persist" do
+    subject{ described_class.new context }
+    before{ described_class.stub(:new_object).with(context).and_return record }
+    context "parses date format" do
+      let :described_class do
+        Class.new ::Yeti::Editor do
+          attribute :valid_from, as: :date
+        end
+      end
+      let(:record){ mock :new_record, valid_from: Date.parse("2002-09-01") }
+      it "when a new value is assigned" do
+        subject.valid_from = "2002-12-31"
+        subject.attributes.should == {valid_from: "2002-12-31"}
+        subject.attributes_for_persist.should == {
+          valid_from: Date.parse("2002-12-31")
+        }
+      end
+      it "without new value" do
+        subject.attributes.should == {valid_from: Date.parse("2002-09-01")}
+        subject.attributes_for_persist.should == {
+          valid_from: Date.parse("2002-09-01")
+        }
+      end
+    end
+    context "formatting can be changed with #format_input_for_persist" do
+      let :described_class do
+        Class.new ::Yeti::Editor do
+          attribute :name
+        end
+      end
+      let(:record){ mock :new_record, name: nil }
+      it "uses format_input_for_persist on each value" do
+        subject.name = "Tony"
+        subject.should_receive(:format_input_for_persist).with(
+          "Tony",
+          attribute_name: :name,
+          from: :edited
+        ).and_return "Anthony"
+        subject.attributes_for_persist.should == {name: "Anthony"}
+      end
+    end
+  end
 end

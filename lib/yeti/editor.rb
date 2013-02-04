@@ -87,6 +87,16 @@ module Yeti
       id.hash
     end
 
+    def attributes_for_persist
+      attributes = {}
+      self.class.attributes.each do |key|
+        value = send key
+        opts = self.class.attribute_options[key]
+        attributes[key] = format_input_for_persist value, opts
+      end
+      attributes
+    end
+
   protected
 
     # ~~~ methods to be implemented in subclasses ~~~
@@ -154,6 +164,20 @@ module Yeti
     def format_input(value, attribute_opts)
       value = value.clean.strip if value.respond_to? :clean
       value
+    end
+
+    def format_input_for_persist(value, attribute_opts)
+      case attribute_opts[:as]
+      when :date
+        case value
+        when Date
+          value
+        else
+          Date.parse value
+        end
+      else
+        value
+      end
     end
 
     def format_output(value, attribute_opts)
