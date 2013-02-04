@@ -2,6 +2,7 @@ module Yeti
   class Editor
     include ActiveModel::Validations
     include ActiveModel::Dirty
+    class InvalidDate < ::StandardError; end
 
     attr_reader :context
     delegate :id, :to_param, to: :edited, allow_nil: true
@@ -173,11 +174,18 @@ module Yeti
         when Date
           value
         else
-          Date.parse value
+          format_date value
         end
       else
         value
       end
+    end
+
+    def format_date(value)
+      return unless value
+      Date.parse value
+    rescue ArgumentError
+      raise InvalidDate, value
     end
 
     def format_output(value, attribute_opts)

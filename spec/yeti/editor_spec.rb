@@ -353,6 +353,18 @@ describe ::Yeti::Editor do
           valid_from: Date.parse("2002-09-01")
         }
       end
+      it "when nil is assigned" do
+        subject.valid_from = nil
+        subject.attributes.should == {valid_from: nil}
+        subject.attributes_for_persist.should == {valid_from: nil}
+      end
+      it "when incorrect value is assigned" do
+        subject.valid_from = "2002-13-31"
+        subject.attributes.should == {valid_from: "2002-13-31"}
+        expect do
+          subject.attributes_for_persist
+        end.to raise_error ::Yeti::Editor::InvalidDate, "2002-13-31"
+      end
     end
     context "formatting can be changed with #format_input_for_persist" do
       let :described_class do
