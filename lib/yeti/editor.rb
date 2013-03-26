@@ -183,6 +183,7 @@ module Yeti
 
     def format_date(value)
       return unless value
+      return value if value.is_a?(Date)
       Date.parse value
     rescue ArgumentError
       raise InvalidDate, value

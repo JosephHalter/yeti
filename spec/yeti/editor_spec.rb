@@ -358,6 +358,12 @@ describe ::Yeti::Editor do
         subject.attributes.should == {valid_from: nil}
         subject.attributes_for_persist.should == {valid_from: nil}
       end
+      it "when date is assigned" do
+        today = Date.today
+        subject.valid_from = today
+        subject.attributes.should == {valid_from: today}
+        subject.attributes_for_persist.should == {valid_from: today}
+      end
       it "when incorrect value is assigned" do
         subject.valid_from = "2002-13-31"
         subject.attributes.should == {valid_from: "2002-13-31"}
