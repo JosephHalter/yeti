@@ -2,7 +2,7 @@ RSpec::Matchers.define :delegates do |delegated_method|
   match do |subject|
     stubbed = send(@delegate).stub(@delegate_method)
     stubbed.with @delegate_params if @delegate_params
-    stubbed.and_return expected=mock
+    stubbed.and_return expected=double
     subject.send(delegated_method) === expected
   end
 

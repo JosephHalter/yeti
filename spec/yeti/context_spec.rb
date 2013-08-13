@@ -30,16 +30,16 @@ describe Yeti::Context do
   context "when account_id" do
     subject{ Yeti::Context.new account_id: 1 }
     it "uses find_account_by_id to find account" do
-      subject.stub(:find_account_by_id).with(1).and_return(expected = mock)
+      subject.stub(:find_account_by_id).with(1).and_return(expected = double)
       subject.account.should be expected
     end
     it "#find_account_by_id is virtual" do
-      lambda do
+      expect do
         subject.find_account_by_id 1
-      end.should raise_error NotImplementedError
+      end.to raise_error NotImplementedError
     end
     it "#account_id returns account.id" do
-      subject.stub(:find_account_by_id).with(1).and_return mock(id: 2)
+      subject.stub(:find_account_by_id).with(1).and_return double(id: 2)
       subject.account_id.should be 2
     end
   end

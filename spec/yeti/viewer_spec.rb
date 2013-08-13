@@ -1,14 +1,14 @@
 require "spec_helper"
 
 describe ::Yeti::Viewer do
-  let(:context){ mock :context }
+  let(:context){ double :context }
   it ".find_by_id is virtual" do
-    lambda do
+    expect do
       described_class.find_by_id context, 1
-    end.should raise_error NotImplementedError, "Yeti::Viewer.find_by_id"
+    end.to raise_error NotImplementedError, "Yeti::Viewer.find_by_id"
   end
   describe "initialization" do
-    let(:existing_object){ mock :existing_object }
+    let(:existing_object){ double :existing_object }
     subject{ described_class.new context, existing_object }
     it "keeps given context" do
       subject.context.should be context
@@ -27,7 +27,7 @@ describe ::Yeti::Viewer do
     end
   end
   describe ".from_id(context, given_id)" do
-    let(:existing_object){ mock :existing_object }
+    let(:existing_object){ double :existing_object }
     subject{ described_class.from_id context, "1" }
     it "uses .find_by_id to find object to edit" do
       described_class.should_receive(:find_by_id).with(context, "1").and_return do
@@ -37,8 +37,8 @@ describe ::Yeti::Viewer do
     end
   end
   describe "equality" do
-    let(:existing){ mock :object, id: 1 }
-    let(:another){ mock :object, id: 2 }
+    let(:existing){ double :object, id: 1 }
+    let(:another){ double :object, id: 2 }
     subject{ described_class.from_id context, 1 }
     before do
       described_class.stub(:find_by_id).with(context, 1).and_return existing

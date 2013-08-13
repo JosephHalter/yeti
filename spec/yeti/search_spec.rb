@@ -1,13 +1,13 @@
 require "spec_helper"
 
 describe Yeti::Search do
-  let(:context){ mock :context }
+  let(:context){ double :context }
   context "initialization" do
     it "does require a context and a hash" do
       message = "wrong number of arguments (1 for 2)"
-      lambda do
+      expect do
         Yeti::Search.new context
-      end.should raise_error ArgumentError, message
+      end.to raise_error ArgumentError, message
     end
   end
   context "given context and an empty hash" do
@@ -35,7 +35,7 @@ describe Yeti::Search do
         "uncommon_filter" => "1",
       }
     end
-    let(:results){ mock :results }
+    let(:results){ double :results }
     subject{ Yeti::Search.new context, search: search }
     before{ subject.stub(:results).and_return results }
     it "#search comes from hash" do
@@ -53,8 +53,8 @@ describe Yeti::Search do
     end
     it "doesn't get everything from search" do
       subject.should_not respond_to(:uncommon_filter)
-      lambda{ subject.invalid_method }.should raise_error NoMethodError
-      lambda{ subject.uncommon_filter }.should raise_error NoMethodError
+      expect{ subject.invalid_method }.to raise_error NoMethodError
+      expect{ subject.uncommon_filter }.to raise_error NoMethodError
     end
     it "#page comes from hash" do
       Yeti::Search.new(context, page: "2").page.should be 2
@@ -80,9 +80,9 @@ describe Yeti::Search do
       search_class.new(context, per_page: "9999").per_page.should be 50
     end
     it "#paginated_results is virtual" do
-      lambda do
+      expect do
         subject.paginated_results
-      end.should raise_error NotImplementedError
+      end.to raise_error NotImplementedError
     end
     it{ should delegates(:to_ary).to :results }
     it{ should delegates(:empty?).to :results }
@@ -91,7 +91,7 @@ describe Yeti::Search do
     it{ should delegates(:size).to :results }
   end
   context "when paginated_results is defined" do
-    let(:paginated_results){ mock :paginated_results }
+    let(:paginated_results){ double :paginated_results }
     subject{ Yeti::Search.new context, {} }
     before{ subject.stub(:paginated_results).and_return paginated_results }
     it{ should delegates(:page_count).to :paginated_results }

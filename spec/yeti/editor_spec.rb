@@ -1,30 +1,30 @@
 require "spec_helper"
 
 describe ::Yeti::Editor do
-  let(:context){ mock :context }
+  let(:context){ double :context }
   subject{ described_class.new context }
   it ".new_object is virtual" do
-    lambda do
+    expect do
       described_class.new_object context
-    end.should raise_error NotImplementedError, "Yeti::Editor.new_object"
+    end.to raise_error NotImplementedError, "Yeti::Editor.new_object"
   end
   it ".find_by_id is virtual" do
-    lambda do
+    expect do
       described_class.find_by_id context, 1
-    end.should raise_error NotImplementedError, "Yeti::Editor.find_by_id"
+    end.to raise_error NotImplementedError, "Yeti::Editor.find_by_id"
   end
   describe "initialization" do
-    let(:new_object){ mock :new_object }
-    let(:existing_object){ mock :existing_object }
+    let(:new_object){ double :new_object }
+    let(:existing_object){ double :existing_object }
     context "with context only" do
       before{ described_class.stub(:new_object).with(context).and_return new_object }
       it "keeps given context" do
         subject.context.should be context
       end
       it "#persist! is virtual" do
-        lambda do
+        expect do
           subject.persist!
-        end.should raise_error NotImplementedError, "Yeti::Editor#persist!"
+        end.to raise_error NotImplementedError, "Yeti::Editor#persist!"
       end
       it "uses .new_object to initialize edited object" do
         subject.edited.should == new_object
@@ -52,9 +52,9 @@ describe ::Yeti::Editor do
         subject.context.should be context
       end
       it "#persist! is virtual" do
-        lambda do
+        expect do
           subject.persist!
-        end.should raise_error NotImplementedError, "Yeti::Editor#persist!"
+        end.to raise_error NotImplementedError, "Yeti::Editor#persist!"
       end
       it "delegates id to edited object" do
         should delegates(:id).to :existing_object
@@ -68,8 +68,8 @@ describe ::Yeti::Editor do
     end
   end
   describe ".from_id(context, given_id)" do
-    let(:new_object){ mock :new_object }
-    let(:existing_object){ mock :existing_object, id: 1 }
+    let(:new_object){ double :new_object }
+    let(:existing_object){ double :existing_object, id: 1 }
     subject{ described_class.from_id context, given_id }
     context "when given_id is nil" do
       let(:given_id){ nil }
@@ -199,7 +199,7 @@ describe ::Yeti::Editor do
       end
     end
     context "existing record" do
-      let(:existing_object){ mock :existing_object, id: 1, name: "Anthony" }
+      let(:existing_object){ double :existing_object, id: 1, name: "Anthony" }
       subject{ described_class.new context, existing_object }
       it("gets id from record"){ subject.id.should be 1 }
       it "gets name from record" do
@@ -210,14 +210,14 @@ describe ::Yeti::Editor do
         subject.stub(:format_output).with("Anthony", {
           attribute_name: :name,
           from: :edited,
-        }).and_return(expected = mock)
+        }).and_return(expected = double)
         subject.name.should be expected
       end
       it "input formatting can be customized" do
         subject.stub(:format_input).with("Tony", {
           attribute_name: :name,
           from: :edited,
-        }).and_return(expected = mock)
+        }).and_return(expected = double)
         subject.name = "Tony"
         subject.name.should be expected
       end
@@ -272,7 +272,7 @@ describe ::Yeti::Editor do
       subject.related_id.should == 2
     end
     it "attribute raises if value cannot be found in source" do
-      lambda{ subject.invalid }.should raise_error NoMethodError
+      expect{ subject.invalid }.to raise_error NoMethodError
     end
   end
   describe "#mandatory?" do
@@ -294,14 +294,14 @@ describe ::Yeti::Editor do
     end
   end
   describe "equality" do
-    let(:existing){ mock :object, id: 1, persisted?: true }
-    let(:another){ mock :object, id: 2, persisted?: true }
+    let(:existing){ double :object, id: 1, persisted?: true }
+    let(:another){ double :object, id: 2, persisted?: true }
     subject{ described_class.from_id context, 1 }
     before do
       described_class.stub(:find_by_id).with(context, 1).and_return existing
       described_class.stub(:find_by_id).with(context, 2).and_return another
       described_class.stub(:new_object).with(context).and_return do
-        mock persisted?: false, id: nil
+        double persisted?: false, id: nil
       end
     end
     it "two new editors are not equal" do
@@ -339,7 +339,7 @@ describe ::Yeti::Editor do
           attribute :valid_from, as: :date
         end
       end
-      let(:record){ mock :new_record, valid_from: Date.parse("2002-09-01") }
+      let(:record){ double :new_record, valid_from: Date.parse("2002-09-01") }
       it "when a new value is assigned" do
         subject.valid_from = "2002-12-31"
         subject.attributes.should == {valid_from: "2002-12-31"}
@@ -378,7 +378,7 @@ describe ::Yeti::Editor do
           attribute :name
         end
       end
-      let(:record){ mock :new_record, name: nil }
+      let(:record){ double :new_record, name: nil }
       it "uses format_input_for_persist on each value" do
         subject.name = "Tony"
         subject.should_receive(:format_input_for_persist).with(

@@ -111,6 +111,14 @@ module Yeti
 
   private
 
+    def self.accessor_module
+      unless const_defined? "AccessorMethods"
+        accessor_module = const_set "AccessorMethods", Module.new
+        include accessor_module
+      end
+      const_get "AccessorMethods"
+    end
+
     def self.attribute(name, opts={})
       opts[:attribute_name] = name
       opts[:from] = :edited unless opts.has_key? :from
@@ -126,7 +134,7 @@ module Yeti
       else
         "#{opts[:from]}.#{name}"
       end
-      class_eval """
+      accessor_module.module_eval """
         def #{name}
           unless defined? @#{name}
             opts = self.class.attribute_options[:#{name}]
