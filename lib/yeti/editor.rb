@@ -136,11 +136,12 @@ module Yeti
       end
       accessor_module.module_eval """
         def #{name}
-          unless defined? @#{name}
+          if defined? @#{name}
+            @#{name}
+          else
             opts = self.class.attribute_options[:#{name}]
-            @#{name} = format_output #{from}, opts
+            format_output #{from}, opts
           end
-          @#{name}
         end
         def #{name}=(value)
           opts = self.class.attribute_options[:#{name}]

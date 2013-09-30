@@ -242,6 +242,7 @@ describe ::Yeti::Editor do
         attribute :timestamp, from: ".timestamp_str"
         attribute :related_id, from: "related.id"
         attribute :invalid
+        attribute :with_default_from_another_attribute, from: ".related_id"
 
         def related
           Struct.new(:id, :description).new 2, "Business man"
@@ -273,6 +274,10 @@ describe ::Yeti::Editor do
     end
     it "attribute raises if value cannot be found in source" do
       expect{ subject.invalid }.to raise_error NoMethodError
+    end
+    it "do not assign default value on access" do
+      subject.with_default_from_another_attribute.should eq(2)
+      subject.instance_variable_get(:@with_default_from_another_attribute).should be_nil
     end
   end
   describe "#mandatory?" do
