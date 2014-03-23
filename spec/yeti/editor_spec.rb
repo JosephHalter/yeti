@@ -395,4 +395,25 @@ describe ::Yeti::Editor do
       end
     end
   end
+  describe "allows defining additional attributes in subclass" do
+    subject{ described_class.new context }
+    before{ described_class.stub(:new_object).with(context).and_return record }
+    let(:record){ double :new_record, name: "Anthony", password: "tony" }
+    let :parent_class do
+      Class.new ::Yeti::Editor do
+        attribute :name
+      end
+    end
+    let :described_class do
+      Class.new parent_class do
+        attribute :password
+      end
+    end
+    it "merges attributes from parent" do
+      subject.attributes.should == {
+        name: "Anthony",
+        password: "tony",
+      }
+    end
+  end
 end
