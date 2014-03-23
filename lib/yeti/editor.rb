@@ -11,6 +11,14 @@ module Yeti
       new context, (find_by_id context, id if id)
     end
 
+    def self.inherited(subclass)
+      attribute_options.each do |name, opts|
+        subclass.attribute name, opts
+      end
+      subclass.dont_translate_error_messages if untranslated?
+      super
+    end
+
     def initialize(context, edited=nil)
       @context = context
       @edited = edited
@@ -112,7 +120,7 @@ module Yeti
   private
 
     def self.accessor_module
-      unless const_defined? "AccessorMethods"
+      unless const_defined? "AccessorMethods", false
         accessor_module = const_set "AccessorMethods", Module.new
         include accessor_module
       end
