@@ -416,4 +416,16 @@ describe ::Yeti::Editor do
       }
     end
   end
+  context "#update_attributes" do
+    it "can be called without argument" do
+      subject.should_receive(:attributes=).with({})
+      subject.should_receive(:save).and_return(expected = double)
+      expect( subject.update_attributes ).to be expected
+    end
+    it "can be called with attributes" do
+      subject.should_receive(:attributes=).with name: "Anthony"
+      subject.should_receive(:save).and_return(expected = double)
+      expect( subject.update_attributes name: "Anthony" ).to be expected
+    end
+  end
 end

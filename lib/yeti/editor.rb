@@ -39,7 +39,7 @@ module Yeti
       )
     end
 
-    def update_attributes(attrs)
+    def update_attributes(attrs={})
       self.attributes = attrs
       save
     end
