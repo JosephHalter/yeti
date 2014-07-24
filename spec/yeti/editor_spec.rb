@@ -17,9 +17,9 @@ describe ::Yeti::Editor do
     let(:new_object){ double :new_object }
     let(:existing_object){ double :existing_object }
     context "with context only" do
-      before{ described_class.stub(:new_object).with(context).and_return new_object }
+      before{ allow(described_class).to receive(:new_object).with(context).and_return new_object }
       it "keeps given context" do
-        subject.context.should be context
+        expect(subject.context).to be context
       end
       it "#persist! is virtual" do
         expect do
@@ -27,29 +27,29 @@ describe ::Yeti::Editor do
         end.to raise_error NotImplementedError, "Yeti::Editor#persist!"
       end
       it "uses .new_object to initialize edited object" do
-        subject.edited.should == new_object
+        expect(subject.edited).to eq(new_object)
       end
       it "delegates id to edited object" do
-        should delegates(:id).to :new_object
+        is_expected.to delegates(:id).to :new_object
       end
       it "delegates to_param to edited object" do
-        should delegates(:to_param).to :new_object
+        is_expected.to delegates(:to_param).to :new_object
       end
       it "delegates persisted? edited object" do
-        should delegates(:persisted?).to :new_object
+        is_expected.to delegates(:persisted?).to :new_object
       end
       it ".new_object can be nil" do
-        described_class.stub :new_object
-        subject.edited.should be_nil
-        subject.id.should be_nil
-        subject.to_param.should be_nil
-        subject.should_not be_persisted
+        allow(described_class).to receive :new_object
+        expect(subject.edited).to be_nil
+        expect(subject.id).to be_nil
+        expect(subject.to_param).to be_nil
+        expect(subject).not_to be_persisted
       end
     end
     context "initialize with context and object to edit" do
       subject{ described_class.new context, existing_object }
       it "keeps given context" do
-        subject.context.should be context
+        expect(subject.context).to be context
       end
       it "#persist! is virtual" do
         expect do
@@ -57,13 +57,13 @@ describe ::Yeti::Editor do
         end.to raise_error NotImplementedError, "Yeti::Editor#persist!"
       end
       it "delegates id to edited object" do
-        should delegates(:id).to :existing_object
+        is_expected.to delegates(:id).to :existing_object
       end
       it "delegates to_param to edited object" do
-        should delegates(:to_param).to :existing_object
+        is_expected.to delegates(:to_param).to :existing_object
       end
       it "delegates persisted? edited object" do
-        should delegates(:persisted?).to :existing_object
+        is_expected.to delegates(:persisted?).to :existing_object
       end
     end
   end
@@ -74,37 +74,37 @@ describe ::Yeti::Editor do
     context "when given_id is nil" do
       let(:given_id){ nil }
       it "uses .new_object to generate object to edit" do
-        described_class.should_receive(:new_object).with(context).and_return new_object
-        subject.edited.should be new_object
+        expect(described_class).to receive(:new_object).with(context).and_return new_object
+        expect(subject.edited).to be new_object
       end
     end
     context "when given_id is not nil" do
       let(:given_id){ "1" }
       it "uses .find_by_id to find object to edit" do
-        described_class.should_receive(:find_by_id).with(context, "1").and_return do
+        expect(described_class).to receive(:find_by_id).with(context, "1") do
           existing_object
         end
-        subject.edited.should be existing_object
-        subject.id.should be 1
+        expect(subject.edited).to be existing_object
+        expect(subject.id).to be 1
       end
     end
   end
   context "when not valid" do
     it "#save returns false" do
-      subject.should_receive(:valid?).and_return false
-      subject.should_not_receive :persist!
-      subject.save.should be false
+      expect(subject).to receive(:valid?).and_return false
+      expect(subject).not_to receive :persist!
+      expect(subject.save).to be false
     end
     it "#save(validate: false) calls persist! then returns true" do
-      subject.should_not_receive :valid?
-      subject.should_receive :persist!
-      subject.save(validate: false).should be true
+      expect(subject).not_to receive :valid?
+      expect(subject).to receive :persist!
+      expect(subject.save(validate: false)).to be true
     end
   end
   context "when valid" do
     it "#save calls persist! then returns true" do
-      subject.should_receive :persist!
-      subject.save.should be true
+      expect(subject).to receive :persist!
+      expect(subject.save).to be true
     end
   end
   context "editor of one record" do
@@ -121,113 +121,123 @@ describe ::Yeti::Editor do
       end
     end
     context "new record" do
-      its(:id){ should be_nil }
-      its(:name){ should be_nil }
+      describe '#id' do
+        subject { super().id }
+        it { is_expected.to be_nil }
+      end
+
+      describe '#name' do
+        subject { super().name }
+        it { is_expected.to be_nil }
+      end
       it "#name= don't touch value if it's not a string" do
         subject.name = ["test"]
-        subject.name.should == ["test"]
+        expect(subject.name).to eq(["test"])
       end
       it "#name= cleans the value of harmful content if it's a string" do
         subject.name = "\tInfected\210\004"
-        subject.name.should == "Infected"
+        expect(subject.name).to eq("Infected")
       end
       it "#name= accepts nil" do
         subject.name = "Valid"
         subject.name = nil
-        subject.name.should be_nil
+        expect(subject.name).to be_nil
       end
       it "#attributes returns a hash" do
-        subject.attributes.should == {name: nil}
+        expect(subject.attributes).to eq({name: nil})
       end
       it "#attributes= assigns each attribute" do
-        subject.should_receive(:name=).with "Anthony"
+        expect(subject).to receive(:name=).with "Anthony"
         subject.attributes = {name: "Anthony"}
       end
       it "#attributes= skips unknown attributes" do
         subject.attributes = {unknown: "Anthony"}
       end
       context "before validation" do
-        its(:errors){ should be_empty }
-        it{ should be_without_error }
+        describe '#errors' do
+          subject { super().errors }
+          it { is_expected.to be_empty }
+        end
+        it{ is_expected.to be_without_error }
       end
       context "after validation" do
         it "has an error on name" do
           subject.valid?
-          subject.errors[:name].should have(1).item
-          subject.errors[:name].should == ["can't be blank"]
+          expect(subject.errors[:name].size).to eq(1)
+          expect(subject.errors[:name]).to eq(["can't be blank"])
         end
         it "is not without_error? anymore" do
           subject.valid?
-          subject.should_not be_without_error
+          expect(subject).not_to be_without_error
         end
         it "can return untranslated error messages" do
           described_class.class_eval do
             dont_translate_error_messages
           end
           subject.valid?
-          subject.errors[:name].should == [:blank]
+          expect(subject.errors[:name]).to eq([:blank])
         end
       end
       context "when name is empty" do
-        it{ should_not be_valid }
+        it{ is_expected.not_to be_valid }
       end
       context "when name is changed" do
         before{ subject.name = "Anthony" }
-        it{ should be_valid }
+        it{ is_expected.to be_valid }
         it "#attributes is updated" do
-          subject.attributes.should == {name: "Anthony"}
+          expect(subject.attributes).to eq({name: "Anthony"})
         end
-        it("name is updated"){ subject.name.should == "Anthony" }
-        it("name is dirty"){ subject.name_changed?.should be true }
+        it("name is updated"){ expect(subject.name).to eq("Anthony") }
+        it("name is dirty"){ expect(subject.name_changed?).to be true }
         it "name isn't dirty anymore if original value is set back" do
           subject.name = nil
-          subject.name_changed?.should be false
+          expect(subject.name_changed?).to be false
         end
       end
       context "after save" do
         before do
           subject.name = "Anthony"
-          subject.stub :persist!
+          allow(subject).to receive :persist!
           subject.save
         end
         it "resets dirty attributes" do
-          subject.name_changed?.should be false
+          expect(subject.name_changed?).to be false
         end
         it "still knows previous changes" do
-          subject.previous_changes.should == {"name"=>[nil, "Anthony"]}
+          expect(subject.previous_changes).to eq({"name"=>[nil, "Anthony"]})
         end
       end
     end
     context "existing record" do
       let(:existing_object){ double :existing_object, id: 1, name: "Anthony" }
       subject{ described_class.new context, existing_object }
-      it("gets id from record"){ subject.id.should be 1 }
+      it("gets id from record"){ expect(subject.id).to be 1 }
       it "gets name from record" do
-        subject.name.should == "Anthony"
+        expect(subject.name).to eq("Anthony")
       end
-      it{ should be_valid }
+      it{ is_expected.to be_valid }
       it "output formatting can be customized" do
-        subject.stub(:format_output).with("Anthony", {
+        allow(subject).to receive(:format_output).with("Anthony", {
           attribute_name: :name,
           from: :edited,
         }).and_return(expected = double)
-        subject.name.should be expected
+        expect(subject.name).to be expected
       end
       it "input formatting can be customized" do
-        subject.stub(:format_input).with("Tony", {
+        allow(subject).to receive(:format_input).with("Tony", {
           attribute_name: :name,
           from: :edited,
         }).and_return(expected = double)
         subject.name = "Tony"
-        subject.name.should be expected
+        expect(subject.name).to be expected
       end
       context "when name is changed" do
         before{ subject.name = nil }
-        it("name is updated"){ subject.name.should be_nil }
-        it("name is dirty"){ subject.name_changed?.should be true }
+        it("name is updated"){ expect(subject.name).to be_nil }
+        it("name is dirty"){ expect(subject.name_changed?).to be true }
         it "name isn't dirty anymore if original value is set back" do
           subject.name = "Anthony"
-          subject.name_changed?.should be false
+          expect(subject.name_changed?).to be false
         end
       end
     end
@@ -257,27 +267,27 @@ describe ::Yeti::Editor do
       end.new context, existing_object
     end
     it "attribute default value comes from edited" do
-      subject.id.should == 1
-      subject.name.should == "Anthony"
+      expect(subject.id).to eq(1)
+      expect(subject.name).to eq("Anthony")
     end
     it "attribute value can come from another object" do
-      subject.description.should == "Business man"
+      expect(subject.description).to eq("Business man")
     end
     it "attribute value can come from nowhere" do
-      subject.password.should be_nil
+      expect(subject.password).to be_nil
     end
     it "attribute value can come from specified method on self" do
-      subject.timestamp.should == "2001-01-01"
+      expect(subject.timestamp).to eq("2001-01-01")
     end
     it "attribute value can come from specified method on another object" do
-      subject.related_id.should == 2
+      expect(subject.related_id).to eq(2)
     end
     it "attribute raises if value cannot be found in source" do
       expect{ subject.invalid }.to raise_error NoMethodError
     end
     it "do not assign default value on access" do
-      subject.with_default_from_another_attribute.should eq(2)
-      subject.instance_variable_get(:@with_default_from_another_attribute).should be_nil
+      expect(subject.with_default_from_another_attribute).to eq(2)
+      expect(subject.instance_variable_get(:@with_default_from_another_attribute)).to be_nil
     end
   end
   describe "#mandatory?" do
@@ -289,13 +299,13 @@ describe ::Yeti::Editor do
       end.new context
     end
     it "is true for an attribute with validates_presence_of" do
-      subject.mandatory?(:name).should be true
+      expect(subject.mandatory?(:name)).to be true
     end
     it "is false for an attribute without validates_presence_of" do
-      subject.mandatory?(:password).should be false
+      expect(subject.mandatory?(:password)).to be false
     end
     it "is false for an invalid attribute" do
-      subject.mandatory?(:invalid).should be false
+      expect(subject.mandatory?(:invalid)).to be false
     end
   end
   describe "equality" do
@@ -303,41 +313,41 @@ describe ::Yeti::Editor do
     let(:another){ double :object, id: 2, persisted?: true }
     subject{ described_class.from_id context, 1 }
     before do
-      described_class.stub(:find_by_id).with(context, 1).and_return existing
-      described_class.stub(:find_by_id).with(context, 2).and_return another
-      described_class.stub(:new_object).with(context).and_return do
+      allow(described_class).to receive(:find_by_id).with(context, 1).and_return existing
+      allow(described_class).to receive(:find_by_id).with(context, 2).and_return another
+      allow(described_class).to receive(:new_object).with(context) do
         double persisted?: false, id: nil
       end
     end
     it "two new editors are not equal" do
       subject = described_class.new context
       other = described_class.new context
-      subject.should_not == other
-      subject.should_not eql other
-      subject.hash.should == other.hash
+      expect(subject).not_to eq(other)
+      expect(subject).not_to eql other
+      expect(subject.hash).to eq(other.hash)
     end
     it "two editors of the same class with the same id are equal" do
       other = described_class.from_id context, 1
-      subject.should == other
-      subject.should eql other
-      subject.hash.should == other.hash
+      expect(subject).to eq(other)
+      expect(subject).to eql other
+      expect(subject.hash).to eq(other.hash)
     end
     it "two editors of the same class with different ids are not equal" do
       other = described_class.from_id context, 2
-      subject.should_not == other
-      subject.should_not eql other
-      subject.hash.should_not == other.hash
+      expect(subject).not_to eq(other)
+      expect(subject).not_to eql other
+      expect(subject.hash).not_to eq(other.hash)
     end
     it "two editors of different classes with the same id are not equal" do
       other = Class.new(described_class).from_id context, 1
-      subject.should_not == other
-      subject.should_not eql other
-      subject.hash.should == other.hash
+      expect(subject).not_to eq(other)
+      expect(subject).not_to eql other
+      expect(subject.hash).to eq(other.hash)
     end
   end
   describe "#attributes_for_persist" do
     subject{ described_class.new context }
-    before{ described_class.stub(:new_object).with(context).and_return record }
+    before{ allow(described_class).to receive(:new_object).with(context).and_return record }
     context "parses date format" do
       let :described_class do
         Class.new ::Yeti::Editor do
@@ -347,31 +357,31 @@ describe ::Yeti::Editor do
       let(:record){ double :new_record, valid_from: Date.parse("2002-09-01") }
       it "when a new value is assigned" do
         subject.valid_from = "2002-12-31"
-        subject.attributes.should == {valid_from: "2002-12-31"}
-        subject.attributes_for_persist.should == {
+        expect(subject.attributes).to eq({valid_from: "2002-12-31"})
+        expect(subject.attributes_for_persist).to eq({
           valid_from: Date.parse("2002-12-31")
-        }
+        })
       end
       it "without new value" do
-        subject.attributes.should == {valid_from: Date.parse("2002-09-01")}
-        subject.attributes_for_persist.should == {
+        expect(subject.attributes).to eq({valid_from: Date.parse("2002-09-01")})
+        expect(subject.attributes_for_persist).to eq({
           valid_from: Date.parse("2002-09-01")
-        }
+        })
       end
       it "when nil is assigned" do
         subject.valid_from = nil
-        subject.attributes.should == {valid_from: nil}
-        subject.attributes_for_persist.should == {valid_from: nil}
+        expect(subject.attributes).to eq({valid_from: nil})
+        expect(subject.attributes_for_persist).to eq({valid_from: nil})
       end
       it "when date is assigned" do
         today = Date.today
         subject.valid_from = today
-        subject.attributes.should == {valid_from: today}
-        subject.attributes_for_persist.should == {valid_from: today}
+        expect(subject.attributes).to eq({valid_from: today})
+        expect(subject.attributes_for_persist).to eq({valid_from: today})
       end
       it "when incorrect value is assigned" do
         subject.valid_from = "2002-13-31"
-        subject.attributes.should == {valid_from: "2002-13-31"}
+        expect(subject.attributes).to eq({valid_from: "2002-13-31"})
         expect do
           subject.attributes_for_persist
         end.to raise_error ::Yeti::Editor::InvalidDate, "2002-13-31"
@@ -386,18 +396,18 @@ describe ::Yeti::Editor do
       let(:record){ double :new_record, name: nil }
       it "uses format_input_for_persist on each value" do
         subject.name = "Tony"
-        subject.should_receive(:format_input_for_persist).with(
+        expect(subject).to receive(:format_input_for_persist).with(
           "Tony",
           attribute_name: :name,
           from: :edited
         ).and_return "Anthony"
-        subject.attributes_for_persist.should == {name: "Anthony"}
+        expect(subject.attributes_for_persist).to eq({name: "Anthony"})
       end
     end
   end
   describe "allows defining additional attributes in subclass" do
     subject{ described_class.new context }
-    before{ described_class.stub(:new_object).with(context).and_return record }
+    before{ allow(described_class).to receive(:new_object).with(context).and_return record }
     let(:record){ double :new_record, name: "Anthony", password: "tony" }
     let :parent_class do
       Class.new ::Yeti::Editor do
@@ -410,21 +420,21 @@ describe ::Yeti::Editor do
       end
     end
     it "merges attributes from parent" do
-      subject.attributes.should == {
+      expect(subject.attributes).to eq({
         name: "Anthony",
         password: "tony",
-      }
+      })
     end
   end
   context "#update_attributes" do
     it "can be called without argument" do
-      subject.should_receive(:attributes=).with({})
-      subject.should_receive(:save).and_return(expected = double)
+      expect(subject).to receive(:attributes=).with({})
+      expect(subject).to receive(:save).and_return(expected = double)
       expect( subject.update_attributes ).to be expected
     end
     it "can be called with attributes" do
-      subject.should_receive(:attributes=).with name: "Anthony"
-      subject.should_receive(:save).and_return(expected = double)
+      expect(subject).to receive(:attributes=).with name: "Anthony"
+      expect(subject).to receive(:save).and_return(expected = double)
       expect( subject.update_attributes name: "Anthony" ).to be expected
     end
   end

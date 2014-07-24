@@ -1,6 +1,6 @@
 RSpec::Matchers.define :delegates do |delegated_method|
   match do |subject|
-    stubbed = send(@delegate).stub(@delegate_method)
+    stubbed = allow(send @delegate).to receive @delegate_method
     stubbed.with @delegate_params if @delegate_params
     stubbed.and_return expected=double
     subject.send(delegated_method) === expected
@@ -25,11 +25,11 @@ RSpec::Matchers.define :delegates do |delegated_method|
     "delegates #{delegated_method} to #{@delegate}#{delegate_method}#{delegate_params}"
   end
 
-  failure_message_for_should do |text|
+  failure_message do |text|
     "expected delegation of #{delegated_method} to #{@delegate}"
   end
 
-  failure_message_for_should do |text|
+  failure_message do |text|
     "do not expected delegation of #{delegated_method} to #{@delegate}"
   end
 end

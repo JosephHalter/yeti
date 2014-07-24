@@ -13,16 +13,16 @@ describe Yeti::Search do
   context "given context and an empty hash" do
     subject{ Yeti::Search.new context, {} }
     it "keeps given context" do
-      subject.context.should be context
+      expect(subject.context).to be context
     end
     it "#search defaults to {}" do
-      subject.search.should == {}
+      expect(subject.search).to eq({})
     end
     it "#page defaults to 1" do
-      subject.page.should == 1
+      expect(subject.page).to eq(1)
     end
     it "#per_page defaults to 20" do
-      subject.per_page.should == 20
+      expect(subject.per_page).to eq(20)
     end
   end
   context "given context and params" do
@@ -37,65 +37,65 @@ describe Yeti::Search do
     end
     let(:results){ double :results }
     subject{ Yeti::Search.new context, search: search }
-    before{ subject.stub(:results).and_return results }
+    before{ allow(subject).to receive(:results).and_return results }
     it "#search comes from hash" do
-      subject.search.should == search
+      expect(subject.search).to eq(search)
     end
     it "gets common filters from search" do
-      subject.should respond_to(:name_contains)
-      subject.should respond_to(:popular_equals)
-      subject.should respond_to(:created_at_gte)
-      subject.should respond_to(:created_at_lte)
-      subject.name_contains.should == "tony"
-      subject.popular_equals.should == "1"
-      subject.created_at_gte.should == "2001-01-01"
-      subject.created_at_lte.should == "2002-01-01"
+      expect(subject).to respond_to(:name_contains)
+      expect(subject).to respond_to(:popular_equals)
+      expect(subject).to respond_to(:created_at_gte)
+      expect(subject).to respond_to(:created_at_lte)
+      expect(subject.name_contains).to eq("tony")
+      expect(subject.popular_equals).to eq("1")
+      expect(subject.created_at_gte).to eq("2001-01-01")
+      expect(subject.created_at_lte).to eq("2002-01-01")
     end
     it "doesn't get everything from search" do
-      subject.should_not respond_to(:uncommon_filter)
+      expect(subject).not_to respond_to(:uncommon_filter)
       expect{ subject.invalid_method }.to raise_error NoMethodError
       expect{ subject.uncommon_filter }.to raise_error NoMethodError
     end
     it "#page comes from hash" do
-      Yeti::Search.new(context, page: "2").page.should be 2
+      expect(Yeti::Search.new(context, page: "2").page).to be 2
     end
     it "doesn't accept page to be lower than 1" do
-      Yeti::Search.new(context, page: "0").page.should be 1
+      expect(Yeti::Search.new(context, page: "0").page).to be 1
     end
     it "#per_page comes from hash" do
-      Yeti::Search.new(context, per_page: "10").per_page.should be 10
+      expect(Yeti::Search.new(context, per_page: "10").per_page).to be 10
     end
     it "doesn't accept per_page to be lower than 1" do
-      Yeti::Search.new(context, per_page: "0").per_page.should be 1
+      expect(Yeti::Search.new(context, per_page: "0").per_page).to be 1
     end
     it "by default per_page has no limit" do
-      Yeti::Search.max_per_page.should be_nil
-      Yeti::Search.new(context, per_page: "9999").per_page.should be 9999
+      expect(Yeti::Search.max_per_page).to be_nil
+      expect(Yeti::Search.new(context, per_page: "9999").per_page).to be 9999
     end
     it "per_page can be limited" do
       search_class = Class.new Yeti::Search do
         max_per_page 50
       end
-      search_class.max_per_page.should be 50
-      search_class.new(context, per_page: "9999").per_page.should be 50
+      expect(search_class.max_per_page).to be 50
+      expect(search_class.new(context, per_page: "9999").per_page).to be 50
     end
     it "#paginated_results is virtual" do
       expect do
         subject.paginated_results
       end.to raise_error NotImplementedError
     end
-    it{ should delegates(:to_ary).to :results }
-    it{ should delegates(:empty?).to :results }
-    it{ should delegates(:each).to :results }
-    it{ should delegates(:group_by).to :results }
-    it{ should delegates(:size).to :results }
+    it{ is_expected.to delegates(:to_ary).to :results }
+    it{ is_expected.to delegates(:empty?).to :results }
+    it{ is_expected.to delegates(:each).to :results }
+    it{ is_expected.to delegates(:group_by).to :results }
+    it{ is_expected.to delegates(:size).to :results }
   end
   context "when paginated_results is defined" do
     let(:paginated_results){ double :paginated_results }
     subject{ Yeti::Search.new context, {} }
-    before{ subject.stub(:paginated_results).and_return paginated_results }
-    it{ should delegates(:page_count).to :paginated_results }
-    it{ should delegates(:count).to "paginated_results#pagination_record_count" }
-    it{ should delegates(:results).to "paginated_results#all" }
+    before{ allow(subject).to receive(:paginated_results).and_return paginated_results }
+    it{ is_expected.to delegates(:page_count).to :paginated_results }
+    it{ is_expected.to delegates(:count).to "paginated_results#pagination_record_count" }
+    it{ is_expected.to delegates(:results).to "paginated_results#all" }
   end
 end
