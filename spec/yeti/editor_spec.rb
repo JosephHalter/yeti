@@ -152,6 +152,7 @@ describe ::Yeti::Editor do
       end
       it "#attributes= skips unknown attributes" do
         subject.attributes = {unknown: "Anthony"}
+        expect(subject.attributes).to eq({name: nil})
       end
       context "before validation" do
         describe '#errors' do
@@ -284,6 +285,9 @@ describe ::Yeti::Editor do
     end
     it "attribute raises if value cannot be found in source" do
       expect{ subject.invalid }.to raise_error NoMethodError
+    end
+    it "calling an undefined method doesn't trigger a stack overflow" do
+      expect{ subject.undefined }.to raise_error NoMethodError
     end
     it "do not assign default value on access" do
       expect(subject.with_default_from_another_attribute).to eq(2)
