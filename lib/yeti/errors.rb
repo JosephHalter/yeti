@@ -15,7 +15,7 @@ module Yeti
       def normalize_message(attribute, message, options)
         message ||= :invalid
         if untranslated? && !message.is_a?(Proc)
-          message
+          options.fetch :message, message
         else
           super
         end

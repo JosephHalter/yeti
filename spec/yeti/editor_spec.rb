@@ -116,7 +116,7 @@ describe ::Yeti::Editor do
           "ObjectEditor"
         end
         def self.new_object(context)
-          Struct.new(:id, :name).new nil, nil
+          Struct.new(:id, :name, :password).new nil, nil, nil
         end
       end
     end
@@ -177,6 +177,14 @@ describe ::Yeti::Editor do
           end
           subject.valid?
           expect(subject.errors[:name]).to eq([:blank])
+        end
+        it "message can be overridden" do
+          described_class.class_eval do
+            attribute :password
+            validates_presence_of :password, message: "overridden message"
+          end
+          subject.valid?
+          expect(subject.errors[:password]).to eq(["overridden message"])
         end
       end
       context "when name is empty" do
