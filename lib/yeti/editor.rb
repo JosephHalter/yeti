@@ -151,14 +151,16 @@ module Yeti
             format_output #{from}, opts
           end
         end
-        def #{name}=(value)
+        def #{name}=(unformatted_value)
           opts = self.class.attribute_options[:#{name}]
-          value = format_input value, opts
-          return if value==#{name}
+          formatted_value = format_input unformatted_value, opts
+          return if formatted_value==#{name}
           #{name}_will_change!
-          @#{name} = value
+          @#{name} = formatted_value
           original_value = changed_attributes[\"#{name}\"]
-          changed_attributes.delete \"#{name}\" if value==original_value
+          if formatted_value==original_value
+            changed_attributes.delete \"#{name}\"
+          end
         end
       """
     end

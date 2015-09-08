@@ -450,4 +450,18 @@ describe ::Yeti::Editor do
       expect( subject.update_attributes name: "Anthony" ).to be expected
     end
   end
+  describe "allows attribute to be called value" do
+    let :described_class do
+      Class.new ::Yeti::Editor do
+        attribute :value
+      end
+    end
+    subject{ described_class.new context }
+    let(:record){ double :new_record, value: nil }
+    before{ allow(described_class).to receive(:new_object).with(context).and_return record }
+    it "can assign a new value" do
+      subject.value = "test"
+      expect(subject.value).to eq "test"
+    end
+  end
 end
