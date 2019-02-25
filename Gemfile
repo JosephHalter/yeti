@@ -5,3 +5,4 @@ gemspec
 
 # Fix I18n.enforce_available_locales deprecation warning
 gem "i18n", github: "svenfuchs/i18n"
+gem "pry"

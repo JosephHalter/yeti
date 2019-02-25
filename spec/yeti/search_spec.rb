@@ -4,7 +4,7 @@ describe Yeti::Search do
   let(:context){ double :context }
   context "initialization" do
     it "does require a context and a hash" do
-      message = "wrong number of arguments (1 for 2)"
+      message = "wrong number of arguments (given 1, expected 2)"
       expect do
         Yeti::Search.new context
       end.to raise_error ArgumentError, message

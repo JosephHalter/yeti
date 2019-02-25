@@ -64,7 +64,11 @@ module Yeti
       end
       persist!
       @previously_changed = changes
-      changed_attributes.clear
+      if respond_to? :changes_applied
+        changes_applied
+      else
+        changed_attributes.clear
+      end
       true
     end
 
@@ -159,7 +163,11 @@ module Yeti
           @#{name} = formatted_value
           original_value = changed_attributes[\"#{name}\"]
           if formatted_value==original_value
-            changed_attributes.delete \"#{name}\"
+            if respond_to? :clear_attribute_changes
+              clear_attribute_changes [\"#{name}\"]
+            else
+              changed_attributes.delete \"#{name}\"
+            end
           end
         end
       """
