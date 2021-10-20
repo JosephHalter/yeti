@@ -1,5 +1,28 @@
 require "spec_helper"
 
+class CustomType < ActiveModel::Type::Value
+  def type
+    :custom_type
+  end
+
+  def deserialize(value)
+    value.to_sym
+  end
+
+  def cast(value)
+    value.to_s unless value.nil?
+  end
+
+  def serialize(value)
+    "serialized_#{value}"
+  end
+
+  def changed?(old_value, new_value, _new_value_before_type_cast)
+    old_value.to_s != new_value.to_s
+  end
+end
+::Yeti.register_type(:custom_type, CustomType)
+
 describe ::Yeti::Editor do
   let(:context){ double :context }
   subject{ described_class.new context }
@@ -144,7 +167,7 @@ describe ::Yeti::Editor do
         expect(subject.name).to be_nil
       end
       it "#attributes returns a hash" do
-        expect(subject.attributes).to eq({name: nil})
+        expect(subject.attributes).to eq({name: nil}.with_indifferent_access)
       end
       it "#attributes= assigns each attribute" do
         expect(subject).to receive(:name=).with "Anthony"
@@ -152,7 +175,7 @@ describe ::Yeti::Editor do
       end
       it "#attributes= skips unknown attributes" do
         subject.attributes = {unknown: "Anthony"}
-        expect(subject.attributes).to eq({name: nil})
+        expect(subject.attributes).to eq({name: nil}.with_indifferent_access)
       end
       context "before validation" do
         describe '#errors' do
@@ -194,7 +217,7 @@ describe ::Yeti::Editor do
         before{ subject.name = "Anthony" }
         it{ is_expected.to be_valid }
         it "#attributes is updated" do
-          expect(subject.attributes).to eq({name: "Anthony"})
+          expect(subject.attributes).to eq({name: "Anthony"}.with_indifferent_access)
         end
         it("name is updated"){ expect(subject.name).to eq("Anthony") }
         it("name is dirty"){ expect(subject.name_changed?).to be true }
@@ -225,27 +248,47 @@ describe ::Yeti::Editor do
         expect(subject.name).to eq("Anthony")
       end
       it{ is_expected.to be_valid }
-      it "output formatting can be customized" do
-        allow(subject).to receive(:format_output).with("Anthony", {
-          attribute_name: :name,
-          from: :edited,
-        }).and_return(expected = double)
-        expect(subject.name).to be expected
-      end
-      it "input formatting can be customized" do
-        allow(subject).to receive(:format_input).with("Tony", {
-          attribute_name: :name,
-          from: :edited,
-        }).and_return(expected = double)
-        subject.name = "Tony"
-        expect(subject.name).to be expected
-      end
       context "when name is changed" do
         before{ subject.name = nil }
         it("name is updated"){ expect(subject.name).to be_nil }
         it("name is dirty"){ expect(subject.name_changed?).to be true }
         it "name isn't dirty anymore if original value is set back" do
           subject.name = "Anthony"
+          expect(subject.name_changed?).to be false
+        end
+      end
+    end
+  end
+  context "editor of one record with custom type" do
+    let :described_class do
+      Class.new ::Yeti::Editor do
+        attribute :name, :custom_type
+        def self.new_object(context)
+          Struct.new(:id, :name, :password).new nil, nil, nil
+        end
+      end
+    end
+    context "existing record" do
+      let(:existing_object){ double :existing_object, id: 1, name: "Anthony" }
+      subject{ described_class.new context, existing_object }
+      it "gets name from record using type's deserialize method" do
+        expect(subject.name).to eq(:Anthony)
+      end
+      it "input is casted using type's cast method" do
+        subject.name = :Tony
+        expect(subject.name).to eq("Tony")
+      end
+      describe "#attributes_for_persist" do
+        it "returns serialized attributes" do
+          expect(subject.attributes_for_persist).to eq({name: "serialized_Anthony"}.with_indifferent_access)
+        end
+      end
+      context "when name is changed" do
+        before{ subject.name = nil }
+        it("name is updated"){ expect(subject.name).to be_nil }
+        it("name is dirty"){ expect(subject.name_changed?).to be true }
+        it "name isn't dirty anymore if original value is set back" do
+          subject.name = :Anthony
           expect(subject.name_changed?).to be false
         end
       end
@@ -300,24 +343,6 @@ describe ::Yeti::Editor do
     it "do not assign default value on access" do
       expect(subject.with_default_from_another_attribute).to eq(2)
       expect(subject.instance_variable_get(:@with_default_from_another_attribute)).to be_nil
-    end
-  end
-  describe "#mandatory?" do
-    subject do
-      Class.new described_class do
-        validates_presence_of :name
-        attribute :name
-        attribute :password
-      end.new context
-    end
-    it "is true for an attribute with validates_presence_of" do
-      expect(subject.mandatory?(:name)).to be true
-    end
-    it "is false for an attribute without validates_presence_of" do
-      expect(subject.mandatory?(:password)).to be false
-    end
-    it "is false for an invalid attribute" do
-      expect(subject.mandatory?(:invalid)).to be false
     end
   end
   describe "equality" do

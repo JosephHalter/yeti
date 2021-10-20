@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Yeti: Context, Editor and Search patterns}
   gem.summary       = %q{Editor pattern simplifies edition of multiple objects
                       at once using ActiveModel}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/JosephHalter/yeti"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
